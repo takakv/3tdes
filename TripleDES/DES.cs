@@ -34,9 +34,15 @@ namespace TripleDES
             for (var i = 0; i < numberOfBlocks; ++i)
             for (var j = 0; j < BlockSize; ++j)
                 inputBlocks[i, j] = inputBytes[j + i * BlockSize];
+
         }
 
-        private static BitArray GetPermutedKey(BitArray bits)
+        private static void PermuteBlock(ref BitArray bits)
+        {
+            
+        }
+
+        public static BitArray GetPermutedKey(BitArray bits)
         {
             // Key permutations table:
             // https://csrc.nist.gov/CSRC/media/Publications/fips/46/3/archive/1999-10-25/documents/fips46-3.pdf#page=24
@@ -130,14 +136,14 @@ namespace TripleDES
             Console.WriteLine($"Enter your key ({BlockSize} ASCII characters long):");
             string key = Console.ReadLine();
             if (!string.IsNullOrEmpty(key) && key.Length == BlockSize)
-                return GetKeyBits(key);
+                return GetBitsFromString(key);
 
             Console.WriteLine("You have not provided valid input. Exiting the program...");
             Environment.Exit(0);
             return null;
         }
 
-        public static BitArray GetKeyBits(string key)
+        public static BitArray GetBitsFromString(string key)
         {
             byte[] keyBytes = Encoding.ASCII.GetBytes(key);
             return new BitArray(keyBytes);

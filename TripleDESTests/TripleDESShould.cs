@@ -4,6 +4,7 @@ using FluentAssertions;
 using TripleDES;
 using Xunit;
 
+// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable SuggestVarOrType_Elsewhere
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 
@@ -30,11 +31,32 @@ namespace TripleDESTests
                     tmp.Add(bitString[j] == '1');
             bool[] keyBitBoolsCheck = tmp.ToArray();
 
-            BitArray keyBits = DES.GetKeyBits(key);
+            BitArray keyBits = DES.GetBitsFromString(key);
             bool[] keyBitBools = new bool[keyBits.Count];
             keyBits.CopyTo(keyBitBools, 0);
 
             keyBitBools.Should().BeEquivalentTo(keyBitBoolsCheck);
+        }
+
+        [Fact]
+        public void PermuteKeyBits()
+        {
+            byte[] bytes = {107, 101, 121, 32, 98, 105, 116, 115};
+
+            bool[] bitBoolsCheck =
+            {
+                true, false, true, false, false, true, true, true, true, false, false, true, false,
+                false, false, true, false, true, false, false, false, false, true, false, false,
+                false, true, false, true, true, true, true, false, true, true, true, true, true,
+                true, true, true, true, true, true, true, true, false, false, false, true, false,
+                false, false, true, false, true
+            };
+
+            BitArray bits = DES.GetPermutedKey(new BitArray(bytes));
+            bool[] bitBools = new bool[bits.Count];
+            bits.CopyTo(bitBools, 0);
+
+            bitBools.Should().BeEquivalentTo(bitBoolsCheck);
         }
     }
 }
