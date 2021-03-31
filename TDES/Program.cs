@@ -16,7 +16,12 @@ namespace TDES
 
             // Get the 16 subkeys for each of the DES rounds.
             var subKeys = new BitArray[16];
-            for (var i = 0; i < 16; ++i) subKeys[i] = GetSubKey(permutedKeyBits, i);
+            for (var i = 0; i < 16; ++i)
+            {
+                // Each shift is applied to the result of the previous round.
+                permutedKeyBits = GetSubKey(permutedKeyBits, i);
+                subKeys[i] = permutedKeyBits;
+            }
 
             string plaintext = GetPlaintext();
             byte[] inputBytes = GetPlaintextBytes(plaintext);
@@ -31,7 +36,7 @@ namespace TDES
 
         private static BitArray GetPermutedKey(BitArray bits)
         {
-            // Key permutation table:
+            // Key permutations table:
             // https://csrc.nist.gov/CSRC/media/Publications/fips/46/3/archive/1999-10-25/documents/fips46-3.pdf#page=24
             int[] permutations =
             {
@@ -40,7 +45,7 @@ namespace TDES
                 61, 53, 45, 37, 29, 21, 13, 5, 28, 20, 12, 4
             };
 
-            // There is a parity check bit for each byte, which gets ignored.
+            // There is a parity check bit for each byte which gets ignored.
             var permutedBits = new BitArray(56);
             for (var i = 0; i < 56; ++i) permutedBits[i] = bits[permutations[i] - 1];
             return permutedBits;
@@ -48,10 +53,43 @@ namespace TDES
 
         private static BitArray GetSubKey(BitArray key, int iteration)
         {
+            // Key schedule calculations table:
+            // https://csrc.nist.gov/CSRC/media/Publications/fips/46/3/archive/1999-10-25/documents/fips46-3.pdf#page=26
+            int[] leftShiftCount = {1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
+
+            // Split key into halves.
             var keyBitsL = new BitArray(28);
             var keyBitsR = new BitArray(28);
-            for (var i = 0; i < 28; ++i) keyBitsL[i] = key[i];
-            for (var i = 0; i < 28; ++i) keyBitsR[i] = key[28 + i];
+            for (var i = 0; i < 28; ++i)
+            {
+                keyBitsL[i] = key[i];
+                keyBitsR[i] = key[28 + i];
+            }
+
+            // Store the leftmost bits.
+            bool[] keyBitsLBuffer = {keyBitsL[0], keyBitsL[1]};
+            bool[] keyBitsRBuffer = {keyBitsR[0], keyBitsR[1]};
+
+            // Shift bits to the left, and cycle the leftmost bits
+            // to be the rightmost ones.
+            keyBitsL.LeftShift(leftShiftCount[iteration]);
+            keyBitsR.LeftShift(leftShiftCount[iteration]);
+            switch (leftShiftCount[iteration])
+            {
+                case 1:
+                    keyBitsL[^1] = keyBitsLBuffer[0];
+                    keyBitsR[^1] = keyBitsRBuffer[0];
+                    break;
+                case 2:
+                    keyBitsL[^2] = keyBitsLBuffer[0];
+                    keyBitsL[^1] = keyBitsLBuffer[1];
+                    keyBitsR[^2] = keyBitsRBuffer[0];
+                    keyBitsR[^1] = keyBitsRBuffer[1];
+                    break;
+                default:
+                    throw new ArgumentException("Illegal key schedule calculations value!");
+            }
+
             var subKey = new BitArray(56);
             return subKey;
         }
