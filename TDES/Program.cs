@@ -23,6 +23,8 @@ namespace TDES
                 subKeys[i] = permutedKeyBits;
             }
 
+            PermuteSubKeys(ref subKeys);
+
             string plaintext = GetPlaintext();
             byte[] inputBytes = GetPlaintextBytes(plaintext);
 
@@ -49,6 +51,28 @@ namespace TDES
             var permutedBits = new BitArray(56);
             for (var i = 0; i < 56; ++i) permutedBits[i] = bits[permutations[i] - 1];
             return permutedBits;
+        }
+
+        // Compression permutation.
+        private static void PermuteSubKeys(ref BitArray[] subKeys)
+        {
+            // Subkeys permutations table:
+            // https://csrc.nist.gov/CSRC/media/Publications/fips/46/3/archive/1999-10-25/documents/fips46-3.pdf#page=26
+            int[] permutations =
+            {
+                14, 17, 11, 24, 1, 5, 3, 28, 15, 6, 21, 10, 23, 19, 12, 4, 26, 8, 16, 7, 27, 20, 13,
+                2, 41, 52, 31, 37, 47, 55, 30, 40, 51, 45, 33, 48, 44, 49, 39, 56, 34, 53, 46, 42,
+                50, 36, 29, 32
+            };
+
+            var temp = new BitArray[16];
+            for (var i = 0; i < 16; ++i)
+            {
+                temp[i] = new BitArray(48);
+                for (var j = 0; j < 48; ++j) temp[i][j] = subKeys[i][permutations[j] - 1];
+            }
+
+            subKeys = temp;
         }
 
         private static BitArray GetSubKey(BitArray key, int iteration)
@@ -87,10 +111,17 @@ namespace TDES
                     keyBitsR[^1] = keyBitsRBuffer[1];
                     break;
                 default:
-                    throw new ArgumentException("Illegal key schedule calculations value!");
+                    throw new ArgumentException("Illegal key schedule calculation value!");
             }
 
+            // Reassemble the key.
             var subKey = new BitArray(56);
+            for (var i = 0; i < 28; ++i)
+            {
+                subKey[i] = keyBitsL[i];
+                subKey[28 + 1] = keyBitsR[i];
+            }
+
             return subKey;
         }
 
