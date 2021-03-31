@@ -3,9 +3,9 @@ using System.Collections;
 using System.Text;
 
 // 3-key triple DES (3TDES).
-namespace TDES
+namespace TripleDES
 {
-    internal static class Program
+    public static class DES
     {
         // DES uses 64 bit blocks, which is 8 bytes.
         private const int BlockSize = 8;
@@ -130,11 +130,17 @@ namespace TDES
             Console.WriteLine($"Enter your key ({BlockSize} ASCII characters long):");
             string key = Console.ReadLine();
             if (!string.IsNullOrEmpty(key) && key.Length == BlockSize)
-                return new BitArray(Encoding.ASCII.GetBytes(key));
+                return GetKeyBits(key);
 
             Console.WriteLine("You have not provided valid input. Exiting the program...");
             Environment.Exit(0);
             return null;
+        }
+
+        public static BitArray GetKeyBits(string key)
+        {
+            byte[] keyBytes = Encoding.ASCII.GetBytes(key);
+            return new BitArray(keyBytes);
         }
 
         private static string GetPlaintext()
