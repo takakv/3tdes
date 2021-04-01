@@ -13,16 +13,16 @@ namespace TripleDES
 
         private static void Main(string[] args)
         {
-            //BitArray permutedKeyBits = GetPermutedKey(GetKey());
+            BitStream permutedKeyBits = GetPermutedKey(GetKey());
 
-            /*// Get the 16 subkeys for each of the DES rounds.
-            var subKeys = new BitArray[16];
+            // Get the 16 subkeys for each of the DES rounds.
+            var subKeys = new BitStream[16];
             for (var i = 0; i < 16; ++i)
             {
                 // Each shift is applied to the result of the previous round.
                 permutedKeyBits = GetSubKey(permutedKeyBits, i);
                 subKeys[i] = permutedKeyBits;
-            }
+            } /*
 
             PermuteSubKeys(ref subKeys);
 
@@ -66,11 +66,12 @@ namespace TripleDES
             bits = permutedBits;
         }
 
-        public static BitArray GetPermutedKey(BitArray bits)
+        public static BitStream GetPermutedKey(BitStream bits)
         {
             // There is a parity check bit for each byte which gets ignored.
-            var permutedBits = new BitArray(56);
-            for (var i = 0; i < 56; ++i) permutedBits[i] = bits[Tables.KeyPermutations[i] - 1];
+            var permutedBits = new BitStream(56);
+            for (var i = 0; i < 56; ++i)
+                permutedBits.Bits[i] = bits.Bits[Tables.KeyPermutations[i] - 1];
             return permutedBits;
         }
 
@@ -88,23 +89,23 @@ namespace TripleDES
             subKeys = temp;
         }
 
-        public static BitArray GetSubKey(BitArray key, int iteration)
+        public static BitStream GetSubKey(BitStream key, int iteration)
         {
             // Key schedule calculations table, page 21 of the reference manual.
             int[] leftShiftCount = {1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
 
             // Split key into halves.
-            var keyBitsL = new BitArray(28);
-            var keyBitsR = new BitArray(28);
+            var keyBitsL = new BitStream(28);
+            var keyBitsR = new BitStream(28);
             for (var i = 0; i < 28; ++i)
             {
-                keyBitsL[i] = key[i];
-                keyBitsR[i] = key[28 + i];
+                keyBitsL.Bits[i] = key.Bits[i];
+                keyBitsR.Bits[i] = key.Bits[28 + i];
             }
 
             // Store the leftmost bits.
-            bool[] keyBitsLBuffer = {keyBitsL[0], keyBitsL[1]};
-            bool[] keyBitsRBuffer = {keyBitsR[0], keyBitsR[1]};
+            bool[] keyBitsLBuffer = {keyBitsL.Bits[0], keyBitsL.Bits[1]};
+            bool[] keyBitsRBuffer = {keyBitsR.Bits[0], keyBitsR.Bits[1]};
 
             // Shift bits to the left, and cycle the leftmost bits
             // to be the rightmost ones.
@@ -113,25 +114,25 @@ namespace TripleDES
             switch (leftShiftCount[iteration])
             {
                 case 1:
-                    keyBitsL[^1] = keyBitsLBuffer[0];
-                    keyBitsR[^1] = keyBitsRBuffer[0];
+                    keyBitsL.Bits[^1] = keyBitsLBuffer[0];
+                    keyBitsR.Bits[^1] = keyBitsRBuffer[0];
                     break;
                 case 2:
-                    keyBitsL[^2] = keyBitsLBuffer[0];
-                    keyBitsL[^1] = keyBitsLBuffer[1];
-                    keyBitsR[^2] = keyBitsRBuffer[0];
-                    keyBitsR[^1] = keyBitsRBuffer[1];
+                    keyBitsL.Bits[^2] = keyBitsLBuffer[0];
+                    keyBitsL.Bits[^1] = keyBitsLBuffer[1];
+                    keyBitsR.Bits[^2] = keyBitsRBuffer[0];
+                    keyBitsR.Bits[^1] = keyBitsRBuffer[1];
                     break;
                 default:
                     throw new ArgumentException("Illegal key schedule calculation value");
             }
 
             // Reassemble the key.
-            var subKey = new BitArray(56);
+            var subKey = new BitStream(56);
             for (var i = 0; i < 28; ++i)
             {
-                subKey[i] = keyBitsL[i];
-                subKey[28 + 1] = keyBitsR[i];
+                subKey.Bits[i] = keyBitsL.Bits[i];
+                subKey.Bits[28 + i] = keyBitsR.Bits[i];
             }
 
             return subKey;

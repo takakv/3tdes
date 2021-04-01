@@ -8,6 +8,14 @@ namespace TripleDES
     [SuppressMessage("ReSharper", "SuggestVarOrType_BuiltInTypes")]
     public sealed class BitStream
     {
+        public BitStream(int length)
+        {
+            if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
+
+            Bits = new bool[length];
+            Count = length;
+        }
+
         public BitStream(byte[] bytes)
         {
             if (bytes == null) throw new ArgumentNullException(nameof(bytes));
@@ -32,12 +40,30 @@ namespace TripleDES
         {
             if (bits == null) throw new ArgumentNullException(nameof(bits));
 
+            Bits = new bool[bits.Length];
             Array.Copy(bits, Bits, bits.Length);
             Count = bits.Length;
         }
 
         public int Count { get; }
 
-        public bool[] Bits { get; }
+        public bool[] Bits { get; private set; }
+
+        public BitStream LeftShift(int count)
+        {
+            if (count <= 0)
+            {
+                if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
+                return this;
+            }
+
+            if (count < Count)
+                for (int i = 0; i < Count; ++i)
+                    Bits[i] = i + count < Count && Bits[i + count];
+            else
+                Bits = new bool[Count];
+
+            return this;
+        }
     }
 }
