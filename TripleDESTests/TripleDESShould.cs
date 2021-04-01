@@ -13,8 +13,10 @@ using Xunit;
 // Decimal: 107 101 121 32 98 105 116 115
 
 // NOTE: The Should().BeEquivalentTo() method does not care if the comparing bit array
-// uses bit string order or index-form order. However, I have provided all bit check arrays
-// in the index-form, as that's how BitArray represents the bits internally.
+// uses bit string order or index-form order. This is NOT A FEATURE, it IS A FLAW,
+// as it merely compares if all values are the same, order independently. This means
+// that extra care needs to be put into providing check bit arrays in index-form
+// and the assertions aren't foolproof!
 
 namespace TripleDESTests
 {
