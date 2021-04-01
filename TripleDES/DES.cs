@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,7 +8,7 @@ namespace TripleDES
     public static class DES
     {
         // DES uses 64 bit blocks, which is 8 bytes.
-        private const int BlockSize = 8;
+        private const int BlockSizeBytes = 8;
         private const int DESRounds = 16;
         private const int SubKeyLength = 48;
 
@@ -18,8 +17,8 @@ namespace TripleDES
             BitStream permutedKeyBits = GetPermutedKey(GetKey());
 
             // Get the 16 subkeys for each of the DES rounds.
-            var subKeys = new BitStream[16];
-            for (var i = 0; i < 16; ++i)
+            var subKeys = new BitStream[DESRounds];
+            for (var i = 0; i < DESRounds; ++i)
             {
                 // Each shift is applied to the result of the previous round.
                 permutedKeyBits = GetSubKey(permutedKeyBits, i);
@@ -28,42 +27,42 @@ namespace TripleDES
 
             CompressSubKeys(ref subKeys);
 
-            /*string plaintext = GetPlaintext();
+            string plaintext = GetPlaintext();
             byte[] plaintextBytes = GetPlaintextBytes(plaintext);
-            int blockCount = plaintextBytes.Length / BlockSize;
-            BitArray[] plaintextBlocks = GetPlaintextBlocks(plaintextBytes, blockCount);
-            PermuteAllBlocks(ref plaintextBlocks, true);*/
+            int blockCount = plaintextBytes.Length / BlockSizeBytes;
+            BitStream[] plaintextBlocks = GetPlaintextBlocks(plaintextBytes, blockCount);
+            PermuteAllBlocks(ref plaintextBlocks, true);
         }
 
-        private static BitArray[] GetPlaintextBlocks(IReadOnlyList<byte> plaintextBytes,
+        private static BitStream[] GetPlaintextBlocks(IReadOnlyList<byte> plaintextBytes,
             int blockCount)
         {
-            var bitBlocks = new BitArray[blockCount];
+            var bitBlocks = new BitStream[blockCount];
             for (var i = 0; i < blockCount; ++i)
             {
                 // Allocate array for bytes.
-                var byteBlocks = new byte[BlockSize];
+                var byteBlocks = new byte[BlockSizeBytes];
                 // Populate byte block.
-                for (var j = 0; j < BlockSize; ++j)
-                    byteBlocks[j] = plaintextBytes[j + i * BlockSize];
+                for (var j = 0; j < BlockSizeBytes; ++j)
+                    byteBlocks[j] = plaintextBytes[j + i * BlockSizeBytes];
                 // Get bit array from bytes.
-                bitBlocks[i] = new BitArray(byteBlocks);
+                bitBlocks[i] = new BitStream(byteBlocks);
             }
 
             return bitBlocks;
         }
 
-        private static void PermuteAllBlocks(ref BitArray[] blocks, bool initial = false)
+        private static void PermuteAllBlocks(ref BitStream[] blocks, bool initial = false)
         {
             for (var i = 0; i < blocks.Length; ++i) PermuteBlock(ref blocks[i], initial);
         }
 
-        public static void PermuteBlock(ref BitArray bits, bool initial = false)
+        public static void PermuteBlock(ref BitStream bits, bool initial = false)
         {
-            const int bitCount = BlockSize * 8;
+            const int bitCount = BlockSizeBytes * 8;
             if (bits.Count != bitCount) throw new ArgumentException("Illegal block size");
 
-            var permutedBits = new BitArray(bitCount);
+            var permutedBits = new BitStream(bitCount);
             for (var i = 0; i < bitCount; ++i) permutedBits[i] = bits[Tables.BlockIP[i] - 1];
             bits = permutedBits;
         }
@@ -145,9 +144,9 @@ namespace TripleDES
 
         private static BitStream GetKey()
         {
-            Console.WriteLine($"Enter your key ({BlockSize} ASCII characters long):");
+            Console.WriteLine($"Enter your key ({BlockSizeBytes} ASCII characters long):");
             string key = Console.ReadLine();
-            if (!string.IsNullOrEmpty(key) && key.Length == BlockSize)
+            if (!string.IsNullOrEmpty(key) && key.Length == BlockSizeBytes)
                 return GetBitsFromString(key);
 
             Console.WriteLine("You have not provided valid input. Exiting the program...");
@@ -178,7 +177,7 @@ namespace TripleDES
             // which is valid for ASCII input. I take advantage of the fact that
             // Array.Resize will allocate the additional space, filled with zeroes.
             byte[] inputBytes = Encoding.ASCII.GetBytes(plaintext);
-            int paddingLength = inputBytes.Length % BlockSize;
+            int paddingLength = inputBytes.Length % BlockSizeBytes;
             if (paddingLength != 0)
                 Array.Resize(ref inputBytes, inputBytes.Length + paddingLength);
 

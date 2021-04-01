@@ -1,4 +1,3 @@
-using System.Collections;
 using FluentAssertions;
 using TripleDES;
 using Xunit;
@@ -72,23 +71,20 @@ namespace TripleDESTests
         {
             bool[] checkBits =
             {
-                T, F, F, T, F, F, F, T,
-                F, F, T, F, F, T, F, T,
-                T, T, T, T, T, T, T, T,
-                F, F, F, F, F, F, F, F,
-                T, F, T, F, F, T, T, T,
-                F, T, F, F, F, F, T, F,
+                T, T, T, T, F, T, T, T,
                 T, T, F, F, F, T, F, F,
-                T, T, T, T, F, T, T, T
+                F, T, F, F, F, F, T, F,
+                T, F, T, F, F, T, T, T,
+                F, F, F, F, F, F, F, F,
+                T, T, T, T, T, T, T, T,
+                F, F, T, F, F, T, F, T,
+                T, F, F, T, F, F, F, T
             };
 
-            BitArray bits = new BitArray(_bytes);
+            BitStream bits = new BitStream(_bytes);
             DES.PermuteBlock(ref bits, true);
 
-            bool[] bitBools = new bool[bits.Count];
-            bits.CopyTo(bitBools, 0);
-
-            bitBools.Should()
+            bits.Bits.Should()
                 .BeEquivalentTo(checkBits, options => options.WithStrictOrdering());
         }
 
