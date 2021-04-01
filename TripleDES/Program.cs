@@ -7,15 +7,16 @@ namespace TripleDES
     {
         private static void Main()
         {
-            BitStream permutedKeyBits = DES.GetPermutedKey(IO.GetKey());
+            BitStream key = IO.GetKey();
+            DES.PermuteKey(ref key);
 
             // Get the 16 subkeys for each of the DES rounds.
             var subKeys = new BitStream[DES.RoundCount];
             for (var i = 0; i < DES.RoundCount; ++i)
             {
                 // Each shift is applied to the result of the previous round.
-                permutedKeyBits = DES.GetSubKey(permutedKeyBits, i);
-                subKeys[i] = permutedKeyBits;
+                key = DES.GetSubKey(key, i);
+                subKeys[i] = key;
             }
 
             DES.CompressSubKeys(ref subKeys);
@@ -25,6 +26,8 @@ namespace TripleDES
             int blockCount = plaintextBytes.Length / DES.BlockSizeBytes;
             BitStream[] plaintextBlocks = IO.GetPlaintextBlocks(plaintextBytes, blockCount);
             DES.PermuteAllBlocks(ref plaintextBlocks, true);
+
+            DES.FFunction(plaintextBlocks[0]);
         }
     }
 }

@@ -13,7 +13,7 @@ using Xunit;
 // NOTE: The Should().BeEquivalentTo() method does not care about the order of elements
 // by default. The strict ordering option should thus be used at all times.
 
-namespace TripleDESTests
+namespace TripleDES.Tests
 {
     public class TripleDESShould
     {
@@ -60,7 +60,8 @@ namespace TripleDESTests
                 T, F, T, F, T, F, F
             };
 
-            BitStream bits = DES.GetPermutedKey(new BitStream(_bytes));
+            BitStream bits = new BitStream(_bytes);
+            DES.PermuteKey(ref bits);
 
             bits.Bits.Should()
                 .BeEquivalentTo(checkBits, options => options.WithStrictOrdering());

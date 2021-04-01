@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripleDES", "TripleDES\TripleDES.csproj", "{44DFD801-1E8E-4B7B-A05A-7E982B402611}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripleDESTests", "TripleDESTests\TripleDESTests.csproj", "{A5479357-2F48-4DE6-8BC3-E57B9B546FEE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripleDES.Tests", "TripleDES.Tests\TripleDES.Tests.csproj", "{A5479357-2F48-4DE6-8BC3-E57B9B546FEE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripleDES.Crypto", "TripleDES.Crypto\TripleDES.Crypto.csproj", "{4687B016-69F9-480C-AFDE-0A4FE423B2C7}"
 EndProject

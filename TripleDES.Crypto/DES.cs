@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace TripleDES.Crypto
@@ -16,17 +17,51 @@ namespace TripleDES.Crypto
             return new BitStream(keyBytes);
         }
 
+        // Permute and resize bitstream according to matrix.
+        private static void PermuteBits(ref BitStream bits, IReadOnlyList<int> permMatrix)
+        {
+            int length = permMatrix.Count;
+            var permutedBits = new BitStream(length);
+            for (var i = 0; i < length; ++i)
+                permutedBits[i] = bits[permMatrix[i] - 1];
+            bits = permutedBits;
+        }
+
+        // Split bitstream in half.
+        private static void SplitBits(out BitStream leftHalf, out BitStream rightHalf,
+            BitStream bits)
+        {
+            int halfLength = bits.Count / 2;
+            leftHalf = new BitStream(halfLength);
+            rightHalf = new BitStream(halfLength);
+            for (var i = 0; i < halfLength; ++i)
+            {
+                leftHalf[i] = bits[i];
+                rightHalf[i] = bits[halfLength + i];
+            }
+        }
+
+        // Assemble bitstream from two halves.
+        private static void AssembleBits(out BitStream bits,
+            BitStream leftHalf, BitStream rightHalf)
+        {
+            int halfLength = leftHalf.Count;
+            bits = new BitStream(halfLength * 2);
+            for (var i = 0; i < halfLength; ++i)
+            {
+                bits[i] = leftHalf[i];
+                bits[28 + i] = rightHalf[i];
+            }
+        }
+
         /*====================================================================*/
         // DES Key and sub keys
         /*====================================================================*/
 
         // Permute key and strip parity check bits. 
-        public static BitStream GetPermutedKey(BitStream bits)
+        public static void PermuteKey(ref BitStream bits)
         {
-            var permutedBits = new BitStream(56);
-            for (var i = 0; i < 56; ++i)
-                permutedBits[i] = bits[Tables.KeyPermutations[i] - 1];
-            return permutedBits;
+            PermuteBits(ref bits, Tables.KeyPermutations);
         }
 
         // Get subkeys according to the DES round.
@@ -35,14 +70,7 @@ namespace TripleDES.Crypto
             // Key schedule calculations table, page 21 of the reference manual.
             int[] leftShiftCount = {1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
 
-            // Split key into halves.
-            var keyBitsL = new BitStream(28);
-            var keyBitsR = new BitStream(28);
-            for (var i = 0; i < 28; ++i)
-            {
-                keyBitsL[i] = key[i];
-                keyBitsR[i] = key[28 + i];
-            }
+            SplitBits(out BitStream keyBitsL, out BitStream keyBitsR, key);
 
             // Store the leftmost bits.
             bool[] keyBitsLBuffer = {keyBitsL[0], keyBitsL[1]};
@@ -68,13 +96,7 @@ namespace TripleDES.Crypto
                     throw new ArgumentException("Illegal key schedule calculation value");
             }
 
-            // Reassemble the key.
-            var subKey = new BitStream(56);
-            for (var i = 0; i < 28; ++i)
-            {
-                subKey[i] = keyBitsL[i];
-                subKey[28 + i] = keyBitsR[i];
-            }
+            AssembleBits(out BitStream subKey, keyBitsL, keyBitsR);
 
             return subKey;
         }
@@ -96,7 +118,6 @@ namespace TripleDES.Crypto
             subKeys = temp;
         }
 
-
         /*====================================================================*/
         // Plaintext blocks
         /*====================================================================*/
@@ -107,14 +128,32 @@ namespace TripleDES.Crypto
             const int bitCount = BlockSizeBytes * 8;
             if (bits.Count != bitCount) throw new ArgumentException("Illegal block size");
 
-            var permutedBits = new BitStream(bitCount);
-            for (var i = 0; i < bitCount; ++i) permutedBits[i] = bits[Tables.BlockIP[i] - 1];
-            bits = permutedBits;
+            PermuteBits(ref bits, Tables.BlockIP);
         }
 
         public static void PermuteAllBlocks(ref BitStream[] blocks, bool initial = false)
         {
             for (var i = 0; i < blocks.Length; ++i) InitialPermuteBlock(ref blocks[i], initial);
+        }
+
+
+        /*====================================================================*/
+        // Feistel function
+        /*====================================================================*/
+
+        public static void ExpansionPermute(ref BitStream bits)
+        {
+            PermuteBits(ref bits, Tables.EPerm);
+        }
+
+        public static void FFunction(BitStream block)
+        {
+            SplitBits(out BitStream lHalf, out BitStream rHalf, block);
+
+            ExpansionPermute(ref rHalf);
+            for (var i = 0; i < RoundCount; ++i)
+            {
+            }
         }
     }
 }
