@@ -24,6 +24,8 @@ namespace TripleDESTests
         private const bool F = false;
         private const bool T = true;
 
+        private readonly byte[] _bytes = {107, 101, 121, 32, 98, 105, 116, 115};
+
         [Fact]
         public void GetKeyBits()
         {
@@ -52,8 +54,6 @@ namespace TripleDESTests
         [Fact]
         public void PermuteKeyBits()
         {
-            byte[] bytes = {107, 101, 121, 32, 98, 105, 116, 115};
-
             bool[] bitBoolsCheck =
             {
                 T, F, T, F, F, T, T,
@@ -66,7 +66,33 @@ namespace TripleDESTests
                 T, F, F, F, T, F, T
             };
 
-            BitArray bits = DES.GetPermutedKey(new BitArray(bytes));
+            BitArray bits = DES.GetPermutedKey(new BitArray(_bytes));
+
+            bool[] bitBools = new bool[bits.Count];
+            bits.CopyTo(bitBools, 0);
+
+            bitBools.Should()
+                .BeEquivalentTo(bitBoolsCheck, options => options.WithStrictOrdering());
+        }
+
+        [Fact]
+        public void PermuteBlockInitially()
+        {
+            bool[] bitBoolsCheck =
+            {
+                T, F, F, T, F, F, F, T,
+                F, F, T, F, F, T, F, T,
+                T, T, T, T, T, T, T, T,
+                F, F, F, F, F, F, F, F,
+                T, F, T, F, F, T, T, T,
+                F, T, F, F, F, F, T, F,
+                T, T, F, F, F, T, F, F,
+                T, T, T, T, F, T, T, T
+            };
+
+            BitArray bits = new BitArray(_bytes);
+            DES.PermuteBlock(ref bits, true);
+
             bool[] bitBools = new bool[bits.Count];
             bits.CopyTo(bitBools, 0);
 
