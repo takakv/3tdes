@@ -44,6 +44,7 @@ namespace TripleDESTests
             };
 
             BitArray bits = DES.GetBitsFromString(key);
+            
             bool[] bitBools = new bool[bits.Count];
             bits.CopyTo(bitBools, 0);
 

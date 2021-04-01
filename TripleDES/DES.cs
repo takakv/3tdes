@@ -61,66 +61,28 @@ namespace TripleDES
             const int bitCount = BlockSize * 8;
             if (bits.Count != bitCount) throw new ArgumentException("Illegal block size");
 
-            // Initial permutation table, page 10 of the reference manual.
-            int[] ip =
-            {
-                58, 50, 42, 34, 26, 18, 10, 2,
-                60, 52, 44, 36, 28, 20, 12, 4,
-                62, 54, 46, 38, 30, 22, 14, 6,
-                64, 56, 48, 40, 32, 24, 16, 8,
-                57, 49, 41, 33, 25, 17, 09, 1,
-                59, 51, 43, 35, 27, 19, 11, 3,
-                61, 53, 45, 37, 29, 21, 13, 5,
-                63, 55, 47, 39, 31, 23, 15, 7
-            };
-
             var permutedBits = new BitArray(bitCount);
-            for (var i = 0; i < bitCount; ++i) permutedBits[i] = bits[ip[i] - 1];
+            for (var i = 0; i < bitCount; ++i) permutedBits[i] = bits[Tables.BlockIP[i] - 1];
             bits = permutedBits;
         }
 
         public static BitArray GetPermutedKey(BitArray bits)
         {
-            // Key permutations table, page 19 of the reference manual.
-            int[] permutations =
-            {
-                57, 49, 41, 33, 25, 17, 09,
-                01, 58, 50, 42, 34, 26, 18,
-                10, 02, 59, 51, 43, 35, 27,
-                19, 11, 03, 60, 52, 44, 36,
-                63, 55, 47, 39, 31, 23, 15,
-                07, 62, 54, 46, 38, 30, 22,
-                14, 06, 61, 53, 45, 37, 29,
-                21, 13, 05, 28, 20, 12, 04
-            };
-
             // There is a parity check bit for each byte which gets ignored.
             var permutedBits = new BitArray(56);
-            for (var i = 0; i < 56; ++i) permutedBits[i] = bits[permutations[i] - 1];
+            for (var i = 0; i < 56; ++i) permutedBits[i] = bits[Tables.KeyPermutations[i] - 1];
             return permutedBits;
         }
 
         // Compression permutation.
         private static void PermuteSubKeys(ref BitArray[] subKeys)
         {
-            // Subkeys permutations table, page 21 of the reference manual.
-            int[] permutations =
-            {
-                14, 17, 11, 24, 01, 05,
-                03, 28, 15, 06, 21, 10,
-                23, 19, 12, 04, 26, 08,
-                16, 07, 27, 20, 13, 02,
-                41, 52, 31, 37, 47, 55,
-                30, 40, 51, 45, 33, 48,
-                44, 49, 39, 56, 34, 53,
-                46, 42, 50, 36, 29, 32
-            };
-
             var temp = new BitArray[16];
             for (var i = 0; i < 16; ++i)
             {
                 temp[i] = new BitArray(48);
-                for (var j = 0; j < 48; ++j) temp[i][j] = subKeys[i][permutations[j] - 1];
+                for (var j = 0; j < 48; ++j)
+                    temp[i][j] = subKeys[i][Tables.KeyCompression[j] - 1];
             }
 
             subKeys = temp;
