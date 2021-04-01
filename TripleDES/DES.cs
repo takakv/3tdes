@@ -13,9 +13,9 @@ namespace TripleDES
 
         private static void Main(string[] args)
         {
-            BitArray permutedKeyBits = GetPermutedKey(GetKey());
+            //BitArray permutedKeyBits = GetPermutedKey(GetKey());
 
-            // Get the 16 subkeys for each of the DES rounds.
+            /*// Get the 16 subkeys for each of the DES rounds.
             var subKeys = new BitArray[16];
             for (var i = 0; i < 16; ++i)
             {
@@ -30,7 +30,7 @@ namespace TripleDES
             byte[] plaintextBytes = GetPlaintextBytes(plaintext);
             int blockCount = plaintextBytes.Length / BlockSize;
             BitArray[] plaintextBlocks = GetPlaintextBlocks(plaintextBytes, blockCount);
-            PermuteAllBlocks(ref plaintextBlocks, true);
+            PermuteAllBlocks(ref plaintextBlocks, true);*/
         }
 
         private static BitArray[] GetPlaintextBlocks(IReadOnlyList<byte> plaintextBytes,
@@ -88,7 +88,7 @@ namespace TripleDES
             subKeys = temp;
         }
 
-        private static BitArray GetSubKey(BitArray key, int iteration)
+        public static BitArray GetSubKey(BitArray key, int iteration)
         {
             // Key schedule calculations table, page 21 of the reference manual.
             int[] leftShiftCount = {1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
@@ -137,7 +137,7 @@ namespace TripleDES
             return subKey;
         }
 
-        private static BitArray GetKey()
+        private static BitStream GetKey()
         {
             Console.WriteLine($"Enter your key ({BlockSize} ASCII characters long):");
             string key = Console.ReadLine();
@@ -149,10 +149,10 @@ namespace TripleDES
             return null;
         }
 
-        public static BitArray GetBitsFromString(string key)
+        public static BitStream GetBitsFromString(string key)
         {
             byte[] keyBytes = Encoding.ASCII.GetBytes(key);
-            return new BitArray(keyBytes);
+            return new BitStream(keyBytes);
         }
 
         private static string GetPlaintext()

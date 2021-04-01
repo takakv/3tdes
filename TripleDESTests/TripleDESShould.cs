@@ -33,22 +33,19 @@ namespace TripleDESTests
 
             bool[] bitBoolsCheck =
             {
-                T, T, F, T, F, T, T, F,
-                T, F, T, F, F, T, T, F,
-                T, F, F, T, T, T, T, F,
-                F, F, F, F, F, T, F, F,
-                F, T, F, F, F, T, T, F,
-                T, F, F, T, F, T, T, F,
-                F, F, T, F, T, T, T, F,
-                T, T, F, F, T, T, T, F
+                F, T, T, F, T, F, T, T,
+                F, T, T, F, F, T, F, T,
+                F, T, T, T, T, F, F, T,
+                F, F, T, F, F, F, F, F,
+                F, T, T, F, F, F, T, F,
+                F, T, T, F, T, F, F, T,
+                F, T, T, T, F, T, F, F,
+                F, T, T, T, F, F, T, T
             };
 
-            BitArray bits = DES.GetBitsFromString(key);
-            
-            bool[] bitBools = new bool[bits.Count];
-            bits.CopyTo(bitBools, 0);
+            BitStream bits = DES.GetBitsFromString(key);
 
-            bitBools.Should()
+            bits.Bits.Should()
                 .BeEquivalentTo(bitBoolsCheck, options => options.WithStrictOrdering());
         }
 
@@ -57,14 +54,14 @@ namespace TripleDESTests
         {
             bool[] bitBoolsCheck =
             {
-                T, F, T, F, F, T, T,
-                T, T, F, F, T, F, F,
-                F, T, F, T, F, F, F,
-                F, T, F, F, F, T, F,
-                T, T, T, T, F, T, T,
+                F, F, F, F, F, F, F,
+                T, F, T, T, T, T, F,
                 T, T, T, T, T, T, T,
-                T, T, T, T, F, F, F,
-                T, F, F, F, T, F, T
+                F, F, T, T, T, T, T,
+                F, F, F, T, F, F, T,
+                F, F, F, F, T, F, T,
+                F, F, T, F, F, F, T,
+                F, F, T, F, T, F, T
             };
 
             BitArray bits = DES.GetPermutedKey(new BitArray(_bytes));
@@ -93,6 +90,34 @@ namespace TripleDESTests
 
             BitArray bits = new BitArray(_bytes);
             DES.PermuteBlock(ref bits, true);
+
+            bool[] bitBools = new bool[bits.Count];
+            bits.CopyTo(bitBools, 0);
+
+            bitBools.Should()
+                .BeEquivalentTo(bitBoolsCheck, options => options.WithStrictOrdering());
+        }
+
+        [Fact]
+        public void GetSubKey()
+        {
+            // Index for bit-string.
+            bool[] keyIndexBitBools =
+            {
+                T, F, T, F, F, T, T,
+                T, T, F, F, T, F, F,
+                F, T, F, T, F, F, F,
+                F, T, F, F, F, T, F,
+                T, T, T, T, F, T, T,
+                T, T, T, T, T, T, T,
+                T, T, T, T, F, F, F,
+                T, F, F, F, T, F, T
+            };
+
+            bool[] bitBoolsCheck = keyIndexBitBools;
+
+            // First iteration.
+            BitArray bits = DES.GetSubKey(new BitArray(keyIndexBitBools), 0);
 
             bool[] bitBools = new bool[bits.Count];
             bits.CopyTo(bitBools, 0);
