@@ -10,6 +10,8 @@ namespace TripleDES
     {
         // DES uses 64 bit blocks, which is 8 bytes.
         private const int BlockSize = 8;
+        private const int DESRounds = 16;
+        private const int SubKeyLength = 48;
 
         private static void Main(string[] args)
         {
@@ -22,11 +24,11 @@ namespace TripleDES
                 // Each shift is applied to the result of the previous round.
                 permutedKeyBits = GetSubKey(permutedKeyBits, i);
                 subKeys[i] = permutedKeyBits;
-            } /*
+            }
 
-            PermuteSubKeys(ref subKeys);
+            CompressSubKeys(ref subKeys);
 
-            string plaintext = GetPlaintext();
+            /*string plaintext = GetPlaintext();
             byte[] plaintextBytes = GetPlaintextBytes(plaintext);
             int blockCount = plaintextBytes.Length / BlockSize;
             BitArray[] plaintextBlocks = GetPlaintextBlocks(plaintextBytes, blockCount);
@@ -76,20 +78,23 @@ namespace TripleDES
         }
 
         // Compression permutation.
-        private static void PermuteSubKeys(ref BitArray[] subKeys)
+        public static void CompressSubKeys(ref BitStream[] subKeys)
         {
-            var temp = new BitArray[16];
-            for (var i = 0; i < 16; ++i)
+            if (subKeys.Length != DESRounds)
+                throw new ArgumentException("Illegal number of subkeys");
+
+            var temp = new BitStream[DESRounds];
+            for (var i = 0; i < DESRounds; ++i)
             {
-                temp[i] = new BitArray(48);
-                for (var j = 0; j < 48; ++j)
+                temp[i] = new BitStream(SubKeyLength);
+                for (var j = 0; j < SubKeyLength; ++j)
                     temp[i][j] = subKeys[i][Tables.KeyCompression[j] - 1];
             }
 
             subKeys = temp;
         }
 
-        public static BitStream GetSubKey(BitStream key, int iteration)
+        public static BitStream GetSubKey(BitStream key, int iterationIndex)
         {
             // Key schedule calculations table, page 21 of the reference manual.
             int[] leftShiftCount = {1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
@@ -109,9 +114,9 @@ namespace TripleDES
 
             // Shift bits to the left, and cycle the leftmost bits
             // to be the rightmost ones.
-            keyBitsL.LeftShift(leftShiftCount[iteration]);
-            keyBitsR.LeftShift(leftShiftCount[iteration]);
-            switch (leftShiftCount[iteration])
+            keyBitsL.LeftShift(leftShiftCount[iterationIndex]);
+            keyBitsR.LeftShift(leftShiftCount[iterationIndex]);
+            switch (leftShiftCount[iterationIndex])
             {
                 case 1:
                     keyBitsL[^1] = keyBitsLBuffer[0];

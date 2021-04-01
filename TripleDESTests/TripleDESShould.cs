@@ -28,7 +28,7 @@ namespace TripleDESTests
         {
             const string key = "key bits";
 
-            bool[] bitBoolsCheck =
+            bool[] checkBits =
             {
                 F, T, T, F, T, F, T, T,
                 F, T, T, F, F, T, F, T,
@@ -43,13 +43,13 @@ namespace TripleDESTests
             BitStream bits = DES.GetBitsFromString(key);
 
             bits.Bits.Should()
-                .BeEquivalentTo(bitBoolsCheck, options => options.WithStrictOrdering());
+                .BeEquivalentTo(checkBits, options => options.WithStrictOrdering());
         }
 
         [Fact]
         public void PermuteKeyBits()
         {
-            bool[] bitBoolsCheck =
+            bool[] checkBits =
             {
                 F, F, F, F, F, F, F,
                 F, T, T, T, T, F, T,
@@ -64,13 +64,13 @@ namespace TripleDESTests
             BitStream bits = DES.GetPermutedKey(new BitStream(_bytes));
 
             bits.Bits.Should()
-                .BeEquivalentTo(bitBoolsCheck, options => options.WithStrictOrdering());
+                .BeEquivalentTo(checkBits, options => options.WithStrictOrdering());
         }
 
         [Fact]
         public void PermuteBlockInitially()
         {
-            bool[] bitBoolsCheck =
+            bool[] checkBits =
             {
                 T, F, F, T, F, F, F, T,
                 F, F, T, F, F, T, F, T,
@@ -89,14 +89,13 @@ namespace TripleDESTests
             bits.CopyTo(bitBools, 0);
 
             bitBools.Should()
-                .BeEquivalentTo(bitBoolsCheck, options => options.WithStrictOrdering());
+                .BeEquivalentTo(checkBits, options => options.WithStrictOrdering());
         }
 
         [Fact]
         public void GetSubKey()
         {
-            // Index for bit-string.
-            bool[] keyIndexBitBools =
+            bool[] bitInitialiser =
             {
                 F, F, F, F, F, F, F,
                 F, T, T, T, T, F, T,
@@ -108,7 +107,7 @@ namespace TripleDESTests
                 T, F, T, F, T, F, F
             };
 
-            bool[] bitBoolsCheck =
+            bool[] checkBits =
             {
                 F, F, F, F, F, F, F,
                 T, T, T, T, F, T, T,
@@ -121,10 +120,48 @@ namespace TripleDESTests
             };
 
             // First iteration.
-            BitStream bits = DES.GetSubKey(new BitStream(keyIndexBitBools), 0);
+            BitStream bits = DES.GetSubKey(new BitStream(bitInitialiser), 0);
 
             bits.Bits.Should()
-                .BeEquivalentTo(bitBoolsCheck, options => options.WithStrictOrdering());
+                .BeEquivalentTo(checkBits, options => options.WithStrictOrdering());
+        }
+
+        [Fact]
+        public void CompressSubKeys()
+        {
+            bool[] bitInitialiser =
+            {
+                F, F, F, F, F, F, F,
+                F, T, T, T, T, F, T,
+                T, T, T, T, T, T, T,
+                T, T, T, T, T, F, F,
+                T, F, F, T, F, F, F,
+                T, F, T, F, F, F, F,
+                T, F, F, F, T, F, F,
+                T, F, T, F, T, F, F
+            };
+
+            bool[] checkBits =
+            {
+                T, T, T, T, F, F,
+                F, F, T, F, T, T,
+                T, T, T, F, T, F,
+                T, F, F, T, F, F,
+                F, T, F, F, T, F,
+                F, F, F, F, F, F,
+                F, F, F, F, F, F,
+                F, F, T, T, T, T
+            };
+
+            BitStream bits = new BitStream(bitInitialiser);
+            BitStream[] subKeys = new BitStream[16];
+            for (int i = 0; i < 16; ++i)
+                subKeys[i] = bits;
+
+            DES.CompressSubKeys(ref subKeys);
+
+            subKeys[0].Bits.Should()
+                .BeEquivalentTo(checkBits, options => options.WithStrictOrdering());
         }
     }
 }
