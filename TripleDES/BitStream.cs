@@ -45,6 +45,12 @@ namespace TripleDES
             Count = bits.Length;
         }
 
+        public bool this[int index]
+        {
+            get => Bits[index];
+            set => Bits[index] = value;
+        }
+
         public int Count { get; }
 
         public bool[] Bits { get; private set; }

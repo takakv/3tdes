@@ -71,7 +71,7 @@ namespace TripleDES
             // There is a parity check bit for each byte which gets ignored.
             var permutedBits = new BitStream(56);
             for (var i = 0; i < 56; ++i)
-                permutedBits.Bits[i] = bits.Bits[Tables.KeyPermutations[i] - 1];
+                permutedBits[i] = bits[Tables.KeyPermutations[i] - 1];
             return permutedBits;
         }
 
@@ -99,13 +99,13 @@ namespace TripleDES
             var keyBitsR = new BitStream(28);
             for (var i = 0; i < 28; ++i)
             {
-                keyBitsL.Bits[i] = key.Bits[i];
-                keyBitsR.Bits[i] = key.Bits[28 + i];
+                keyBitsL[i] = key[i];
+                keyBitsR[i] = key[28 + i];
             }
 
             // Store the leftmost bits.
-            bool[] keyBitsLBuffer = {keyBitsL.Bits[0], keyBitsL.Bits[1]};
-            bool[] keyBitsRBuffer = {keyBitsR.Bits[0], keyBitsR.Bits[1]};
+            bool[] keyBitsLBuffer = {keyBitsL[0], keyBitsL[1]};
+            bool[] keyBitsRBuffer = {keyBitsR[0], keyBitsR[1]};
 
             // Shift bits to the left, and cycle the leftmost bits
             // to be the rightmost ones.
@@ -114,14 +114,14 @@ namespace TripleDES
             switch (leftShiftCount[iteration])
             {
                 case 1:
-                    keyBitsL.Bits[^1] = keyBitsLBuffer[0];
-                    keyBitsR.Bits[^1] = keyBitsRBuffer[0];
+                    keyBitsL[^1] = keyBitsLBuffer[0];
+                    keyBitsR[^1] = keyBitsRBuffer[0];
                     break;
                 case 2:
-                    keyBitsL.Bits[^2] = keyBitsLBuffer[0];
-                    keyBitsL.Bits[^1] = keyBitsLBuffer[1];
-                    keyBitsR.Bits[^2] = keyBitsRBuffer[0];
-                    keyBitsR.Bits[^1] = keyBitsRBuffer[1];
+                    keyBitsL[^2] = keyBitsLBuffer[0];
+                    keyBitsL[^1] = keyBitsLBuffer[1];
+                    keyBitsR[^2] = keyBitsRBuffer[0];
+                    keyBitsR[^1] = keyBitsRBuffer[1];
                     break;
                 default:
                     throw new ArgumentException("Illegal key schedule calculation value");
@@ -131,8 +131,8 @@ namespace TripleDES
             var subKey = new BitStream(56);
             for (var i = 0; i < 28; ++i)
             {
-                subKey.Bits[i] = keyBitsL.Bits[i];
-                subKey.Bits[28 + i] = keyBitsR.Bits[i];
+                subKey[i] = keyBitsL[i];
+                subKey[28 + i] = keyBitsR[i];
             }
 
             return subKey;
