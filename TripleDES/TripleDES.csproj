@@ -6,4 +6,8 @@
         <RootNamespace>TripleDES</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\TripleDES.Crypto\TripleDES.Crypto.csproj" />
+    </ItemGroup>
+
 </Project>

@@ -1,5 +1,5 @@
 using FluentAssertions;
-using TripleDES;
+using TripleDES.Crypto;
 using Xunit;
 
 // ReSharper disable SuggestVarOrType_SimpleTypes
@@ -82,7 +82,7 @@ namespace TripleDESTests
             };
 
             BitStream bits = new BitStream(_bytes);
-            DES.PermuteBlock(ref bits, true);
+            DES.InitialPermuteBlock(ref bits, true);
 
             bits.Bits.Should()
                 .BeEquivalentTo(checkBits, options => options.WithStrictOrdering());

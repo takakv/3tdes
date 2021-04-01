@@ -21,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\TripleDES\TripleDES.csproj" />
+      <ProjectReference Include="..\TripleDES.Crypto\TripleDES.Crypto.csproj" />
     </ItemGroup>
 
 </Project>

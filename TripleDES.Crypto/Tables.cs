@@ -1,4 +1,4 @@
-﻿namespace TripleDES
+﻿namespace TripleDES.Crypto
 {
     internal struct Tables
     {
