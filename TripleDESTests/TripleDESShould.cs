@@ -12,11 +12,10 @@ using Xunit;
 // Index-form bit string: 11010110 10100110 10011110 00000100 01000110 10010110 00101110 11001110
 // Decimal: 107 101 121 32 98 105 116 115
 
-// NOTE: The Should().BeEquivalentTo() method does not care if the comparing bit array
-// uses bit string order or index-form order. This is NOT A FEATURE, it IS A FLAW,
-// as it merely compares if all values are the same, order independently. This means
-// that extra care needs to be put into providing check bit arrays in index-form
-// and the assertions aren't foolproof!
+// NOTE: The Should().BeEquivalentTo() method does not care about the order of elements
+// by default. While this means that one could theoretically use bit-string form in the tests,
+// this also means that the test is not rigorous and may pass for an erroneous bit string.
+// Therefore, the strict ordering option should be used at all times.
 
 namespace TripleDESTests
 {
@@ -46,7 +45,8 @@ namespace TripleDESTests
             bool[] bitBools = new bool[bits.Count];
             bits.CopyTo(bitBools, 0);
 
-            bitBools.Should().BeEquivalentTo(bitBoolsCheck);
+            bitBools.Should()
+                .BeEquivalentTo(bitBoolsCheck, options => options.WithStrictOrdering());
         }
 
         [Fact]
@@ -56,7 +56,7 @@ namespace TripleDESTests
 
             bool[] bitBoolsCheck =
             {
-                T, F, T, F, T, F, T,
+                T, F, T, F, F, T, T,
                 T, T, F, F, T, F, F,
                 F, T, F, T, F, F, F,
                 F, T, F, F, F, T, F,
@@ -70,7 +70,8 @@ namespace TripleDESTests
             bool[] bitBools = new bool[bits.Count];
             bits.CopyTo(bitBools, 0);
 
-            bitBools.Should().BeEquivalentTo(bitBoolsCheck);
+            bitBools.Should()
+                .BeEquivalentTo(bitBoolsCheck, options => options.WithStrictOrdering());
         }
     }
 }
